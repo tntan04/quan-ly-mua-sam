@@ -1,6 +1,5 @@
 import { ObjectId } from "mongodb";
-import { getDB } from "../services/dbService";
-
+import { getDB } from "../src/services/dbService";
 export default async function handler(req, res) {
   const db = await getDB();
   const collection = db.collection("products");
