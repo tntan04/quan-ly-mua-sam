@@ -3,9 +3,7 @@ import { MongoClient } from "mongodb";
 let cachedClient = null;
 
 async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedClient;
-  }
+  if (cachedClient) return cachedClient;
 
   const client = new MongoClient(process.env.MONGODB_URI);
   await client.connect();
@@ -17,15 +15,27 @@ async function connectToDatabase() {
 export default async function handler(req, res) {
   try {
     const client = await connectToDatabase();
-    const db = client.db("test"); // bạn có thể đổi tên database sau
+    const db = client.db("quanly"); // tên database bạn muốn
 
-    const collections = await db.listCollections().toArray();
+    const collection = db.collection("testCollection");
+
+    // Tạo dữ liệu mẫu
+    const sampleData = {
+      name: "Test User",
+      role: "Admin",
+      createdAt: new Date(),
+    };
+
+    const result = await collection.insertOne(sampleData);
 
     res.status(200).json({
       success: true,
-      collections: collections.map(c => c.name),
+      insertedId: result.insertedId,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 }
