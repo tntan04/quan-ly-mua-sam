@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDB } from "./mongo";
 
 export default async function handler(
