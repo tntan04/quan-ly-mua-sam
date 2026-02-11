@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { getDB } from "../lib/mongo";
+import { getDB } from "../lib/mongo.js";
 
 export default async function handler(req, res) {
   const db = await getDB();
