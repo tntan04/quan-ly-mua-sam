@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Role, User, ProcurementUnit, ProcurementRequest, GoodsItem, InventoryTransaction, ProcurementDossier } from './types';
-import Sidebar from './components/Sidebar';
+import Sidebar from './components/sidebar';
 import MobileNav from './components/MobileNav';
 import Dashboard from './components/Dashboard';
 import UserManagement from './components/UserManagement';
