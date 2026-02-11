@@ -113,7 +113,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    initializeDB();
     syncAllData();
     const interval = setInterval(async () => {
       const status = await apiService.checkConnection();
