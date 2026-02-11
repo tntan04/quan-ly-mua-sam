@@ -15,7 +15,6 @@ import Reports from './components/Reports';
 import Profile from './components/Profile';
 import { driveService } from './services/driveService';
 import { apiService } from './services/apiService';
-import { initializeDB } from './services/dbService';
 
 const INITIAL_USERS: User[] = [
   { 
