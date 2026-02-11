@@ -21,10 +21,7 @@ export default async function handler(req, res) {
         createdAt: new Date(),
       });
 
-      return res.status(201).json({
-        success: true,
-        insertedId: result.insertedId,
-      });
+      return res.status(200).json({ success: true, insertedId: result.insertedId });
     }
 
     if (req.method === "PUT") {
@@ -35,7 +32,7 @@ export default async function handler(req, res) {
         { $set: { name, price: Number(price), stock: Number(stock) } }
       );
 
-      return res.json({ success: true });
+      return res.status(200).json({ success: true });
     }
 
     if (req.method === "DELETE") {
@@ -43,12 +40,12 @@ export default async function handler(req, res) {
 
       await collection.deleteOne({ _id: new ObjectId(id) });
 
-      return res.json({ success: true });
+      return res.status(200).json({ success: true });
     }
 
-    return res.status(405).json({ message: "Method Not Allowed" });
-  } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({ error: err.message });
+    return res.status(405).json({ error: "Method not allowed" });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
