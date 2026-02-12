@@ -20,9 +20,6 @@ import GoodsManagement from "./GoodsManagement";
 function App() {
   return <GoodsManagement />;
 }
-
-export default App;
-
 const INITIAL_USERS: User[] = [
   { 
     id: '1', 
