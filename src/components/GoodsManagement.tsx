@@ -1,187 +1,158 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState } from "react";
 
-interface Product {
-  _id: string;
-  name: string;
-  price: number;
-  stock: number;
-  createdAt?: string;
-}
-
-const GoodsManagement: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState<number>(0);
-  const [stock, setStock] = useState<number>(0);
+const GoodsManagement = () => {
+  const [goods, setGoods] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    price: "",
+    stock: ""
+  });
+  const [editingIndex, setEditingIndex] = useState(null);
 
-  // =========================
-  // LOAD PRODUCTS
-  // =========================
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/products");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setProducts(data);
-      }
-    } catch (err) {
-      console.error("Load products error:", err);
-    } finally {
-      setLoading(false);
-    }
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  // =========================
-  // ADD PRODUCT
-  // =========================
-  const handleAddProduct = async () => {
-    if (!name.trim()) {
-      alert("Vui lòng nhập tên sản phẩm");
+  const handleSubmit = () => {
+    if (!form.name || !form.price || !form.stock) {
+      alert("Vui lòng nhập đầy đủ thông tin");
       return;
     }
 
-    try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name,
-          price,
-          stock
-        })
-      });
+    if (editingIndex !== null) {
+      const updated = [...goods];
+      updated[editingIndex] = {
+        ...form,
+        createdAt: goods[editingIndex].createdAt
+      };
+      setGoods(updated);
+      setEditingIndex(null);
+    } else {
+      setGoods([
+        ...goods,
+        {
+          ...form,
+          createdAt: new Date().toLocaleString()
+        }
+      ]);
+    }
 
-      const result = await res.json();
+    setForm({ name: "", price: "", stock: "" });
+  };
 
-      if (result.success) {
-        alert("Thêm sản phẩm thành công!");
-        setName("");
-        setPrice(0);
-        setStock(0);
-        fetchProducts();
-      } else {
-        alert("Lỗi thêm sản phẩm!");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Lỗi kết nối server!");
+  const handleEdit = (index) => {
+    setForm(goods[index]);
+    setEditingIndex(index);
+  };
+
+  const handleDelete = (index) => {
+    if (window.confirm("Bạn có chắc muốn xóa?")) {
+      const updated = goods.filter((_, i) => i !== index);
+      setGoods(updated);
     }
   };
 
-  // =========================
-  // DELETE PRODUCT
-  // =========================
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Bạn chắc chắn muốn xoá?")) return;
-
-    try {
-      const res = await fetch(`/api/products?id=${id}`, {
-        method: "DELETE"
-      });
-
-      const result = await res.json();
-
-      if (result.success) {
-        fetchProducts();
-      } else {
-        alert("Xoá thất bại!");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // =========================
-  // SEARCH FILTER
-  // =========================
-  const filteredProducts = useMemo(() => {
-    return products.filter(p =>
-      p.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [products, search]);
+  const filteredGoods = goods.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Quản lý sản phẩm</h2>
+    <div className="p-8 bg-gray-50 min-h-screen">
+      <h2 className="text-2xl font-bold mb-6">Quản lý sản phẩm</h2>
 
-      {/* FORM ADD */}
-      <div style={{ marginBottom: 20 }}>
-        <input
-          placeholder="Tên sản phẩm"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Giá"
-          value={price}
-          onChange={e => setPrice(Number(e.target.value))}
-        />
-        <input
-          type="number"
-          placeholder="Số lượng"
-          value={stock}
-          onChange={e => setStock(Number(e.target.value))}
-        />
-        <button onClick={handleAddProduct}>Thêm</button>
+      {/* Form */}
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <div className="grid grid-cols-4 gap-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Tên sản phẩm"
+            className="border p-2 rounded"
+            value={form.name}
+            onChange={handleChange}
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Giá"
+            className="border p-2 rounded"
+            value={form.price}
+            onChange={handleChange}
+          />
+          <input
+            type="number"
+            name="stock"
+            placeholder="Tồn kho"
+            className="border p-2 rounded"
+            value={form.stock}
+            onChange={handleChange}
+          />
+          <button
+            onClick={handleSubmit}
+            className={`${
+              editingIndex !== null ? "bg-yellow-500" : "bg-red-500"
+            } text-white rounded p-2`}
+          >
+            {editingIndex !== null ? "Cập nhật" : "Thêm"}
+          </button>
+        </div>
       </div>
 
-      {/* SEARCH */}
-      <div style={{ marginBottom: 20 }}>
+      {/* Search */}
+      <div className="mb-4">
         <input
-          placeholder="Tìm kiếm..."
+          type="text"
+          placeholder="Tìm kiếm sản phẩm..."
+          className="border p-2 rounded w-1/3"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      {/* TABLE */}
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : (
-        <table border={1} cellPadding={8} width="100%">
-          <thead>
+      {/* Table */}
+      <div className="bg-white rounded shadow overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-100">
             <tr>
-              <th>Tên</th>
-              <th>Giá</th>
-              <th>Tồn kho</th>
-              <th>Ngày tạo</th>
-              <th>Hành động</th>
+              <th className="p-3 text-left">Tên</th>
+              <th className="p-3 text-left">Giá</th>
+              <th className="p-3 text-left">Tồn kho</th>
+              <th className="p-3 text-left">Ngày tạo</th>
+              <th className="p-3 text-center">Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.length === 0 ? (
+            {filteredGoods.length === 0 ? (
               <tr>
-                <td colSpan={5} align="center">
+                <td colSpan="5" className="text-center p-6 text-gray-500">
                   Không có sản phẩm
                 </td>
               </tr>
             ) : (
-              filteredProducts.map(product => (
-                <tr key={product._id}>
-                  <td>{product.name}</td>
-                  <td>{product.price?.toLocaleString()} đ</td>
-                  <td>{product.stock}</td>
-                  <td>
-                    {product.createdAt
-                      ? new Date(product.createdAt).toLocaleString()
-                      : "-"}
+              filteredGoods.map((item, index) => (
+                <tr key={index} className="border-t">
+                  <td className="p-3">{item.name}</td>
+                  <td className="p-3">
+                    {Number(item.price).toLocaleString()} đ
                   </td>
-                  <td>
+                  <td className="p-3">{item.stock}</td>
+                  <td className="p-3">{item.createdAt}</td>
+                  <td className="p-3 text-center space-x-2">
                     <button
-                      style={{ background: "red", color: "white" }}
-                      onClick={() => handleDelete(product._id)}
+                      onClick={() => handleEdit(index)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded"
                     >
-                      Xoá
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="bg-gray-700 text-white px-3 py-1 rounded"
+                    >
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -189,7 +160,7 @@ const GoodsManagement: React.FC = () => {
             )}
           </tbody>
         </table>
-      )}
+      </div>
     </div>
   );
 };
